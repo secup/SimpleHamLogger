@@ -20,7 +20,7 @@ void drawMainWindows(WINDOW  *mainWindow, WINDOW *statusBar) {
 
     mvwprintw(mainWindow, 1 , 1, "maxHeight = %d, maxWidth = %d", maxHeight, maxWidth);
     mvwprintw(statusBar, 1, 1, "Status Bar Message...");
-   
+
     wrefresh(stdscr); 
     wrefresh(mainWindow);
     wrefresh(statusBar);
@@ -32,9 +32,9 @@ void drawQsoEntryForm(WINDOW *qsoFormWindow, FORM *qsoForm, FIELD *field) {
 }
 
 int main() {
-    
+
     setlocale(LC_ALL,"");
-	WINDOW *mainWindow;
+    WINDOW *mainWindow;
     WINDOW *statusBar;
     WINDOW *qsoEntryWindow;
 
@@ -45,15 +45,15 @@ int main() {
 
 
 
-	int ch;
+    int ch;
 
 
-	/* Initialize curses */
-	initscr();
-	start_color();
-	cbreak();
-	noecho();
-	keypad(stdscr, TRUE);
+    /* Initialize curses */
+    initscr();
+    start_color();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
 
     drawMainWindows(mainWindow, statusBar);
 
@@ -65,30 +65,30 @@ int main() {
     delwin(mainWindow);
     delwin(statusBar);
     delwin(qsoFormWindow);
-	endwin();
-	return 0;
+    endwin();
+    return 0;
 }
 
 
 void print_in_middle(WINDOW *win, int starty, int startx, int width, char *string, chtype color)
 {	int length, x, y;
-	float temp;
+    float temp;
 
-	if(win == NULL)
-		win = stdscr;
-	getyx(win, y, x);
-	if(startx != 0)
-		x = startx;
-	if(starty != 0)
-		y = starty;
-	if(width == 0)
-		width = 80;
+    if(win == NULL)
+        win = stdscr;
+    getyx(win, y, x);
+    if(startx != 0)
+        x = startx;
+    if(starty != 0)
+        y = starty;
+    if(width == 0)
+        width = 80;
 
-	length = strlen(string);
-	temp = (width - length)/ 2;
-	x = startx + (int)temp;
-	wattron(win, color);
-	mvwprintw(win, y, x, "%s", string);
-	wattroff(win, color);
-	refresh();
+    length = strlen(string);
+    temp = (width - length)/ 2;
+    x = startx + (int)temp;
+    wattron(win, color);
+    mvwprintw(win, y, x, "%s", string);
+    wattroff(win, color);
+    refresh();
 }
