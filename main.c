@@ -3,10 +3,17 @@
 #include <panel.h>
 #include <form.h>
 #include <menu.h>
+#include <assert.h>
+
+WINDOW *mainWindow;
+WINDOW *statusBar;
+WINDOW *qsoFormWindow;
+FORM *qsoForm;
+FIELD *field[3];
 
 void print_in_middle(WINDOW *win, int starty, int startx, int width, char *string, chtype color);
 
-void drawMainWindows(WINDOW  *mainWindow, WINDOW *statusBar) {
+void drawMainWindows() {
 
     int maxHeight;
     int maxWidth;
@@ -28,7 +35,7 @@ void drawMainWindows(WINDOW  *mainWindow, WINDOW *statusBar) {
 
 }
 
-void drawQsoEntryForm(WINDOW *qsoFormWindow, FORM *qsoForm, FIELD **field) {
+void drawQsoEntryForm() {
 
     int rows, cols;
 
@@ -44,6 +51,9 @@ void drawQsoEntryForm(WINDOW *qsoFormWindow, FORM *qsoForm, FIELD **field) {
     set_field_back(field[1], A_UNDERLINE);
     field_opts_off(field[1], O_AUTOSKIP);
 
+    set_field_buffer(field[0], 0, "label1");
+	set_field_buffer(field[1], 0, "val1");
+
     /* Create the form and post it */
     qsoForm = new_form(field);
 
@@ -52,7 +62,6 @@ void drawQsoEntryForm(WINDOW *qsoFormWindow, FORM *qsoForm, FIELD **field) {
 
     /* Create the window to be associated with the form */
     qsoFormWindow = newwin(rows + 4, cols + 4, 4, 4);
-    keypad(qsoFormWindow, TRUE);
 
     /* Set main window and sub window */
     set_form_win(qsoForm, qsoFormWindow);
@@ -72,55 +81,59 @@ void drawQsoEntryForm(WINDOW *qsoFormWindow, FORM *qsoForm, FIELD **field) {
 // Generic form driver.
 // @return -1 on no-go of field_buffer processing, otherwise ready to extract values.
 //
-int formDriver(int ch, WINDOW *formWindow, FORM *form, FIELD **field) {
-    int i;
+int formDriver(int ch) {
+
     int result = 1;
 
 	switch (ch) {
         case 27:
             // Or the current field buffer won't be sync with what is displayed
-            form_driver(form, REQ_NEXT_FIELD);
-            form_driver(form, REQ_PREV_FIELD);
-            pos_form_cursor(form);
+            form_driver(qsoForm, REQ_NEXT_FIELD);
+            form_driver(qsoForm, REQ_PREV_FIELD);
+            pos_form_cursor(qsoForm);
 
             result = -1;
             break;
 
         case KEY_DOWN:
-            form_driver(form, REQ_NEXT_FIELD);
-            form_driver(form, REQ_END_LINE);
+        case 9:
+            form_driver(qsoForm, REQ_NEXT_FIELD);
+            form_driver(qsoForm, REQ_END_LINE);
             break;
 
         case KEY_UP:
-            form_driver(form, REQ_PREV_FIELD);
-            form_driver(form, REQ_END_LINE);
+            form_driver(qsoForm, REQ_PREV_FIELD);
+            form_driver(qsoForm, REQ_END_LINE);
             break;
 
         case KEY_LEFT:
-            form_driver(form, REQ_PREV_CHAR);
+            form_driver(qsoForm, REQ_PREV_CHAR);
             break;
 
         case KEY_RIGHT:
-            form_driver(form, REQ_NEXT_CHAR);
+            form_driver(qsoForm, REQ_NEXT_CHAR);
             break;
 
             // Delete the char before cursor
         case KEY_BACKSPACE:
         case 127:
-            form_driver(form, REQ_DEL_PREV);
+            form_driver(qsoForm, REQ_DEL_PREV);
             break;
 
             // Delete the char under the cursor
         case KEY_DC:
-            form_driver(form, REQ_DEL_CHAR);
+            form_driver(qsoForm, REQ_DEL_CHAR);
+            break;
+        case 10:
+            result = 1;
             break;
 
         default:
-            form_driver(form, ch);
+            form_driver(qsoForm, ch);
             break;
     }
 
-    wrefresh(formWindow);
+    wrefresh(qsoFormWindow);
 
     return result;
 
@@ -129,11 +142,6 @@ int formDriver(int ch, WINDOW *formWindow, FORM *form, FIELD **field) {
 int main() {
 
     setlocale(LC_ALL,"");
-    WINDOW *mainWindow;
-    WINDOW *statusBar;
-    WINDOW *qsoFormWindow;
-    FORM *qsoForm;
-    FIELD *field[3];
 
     int ch;
     int formResult;
@@ -149,19 +157,21 @@ int main() {
     /* Initialize few color pairs */
    	init_pair(1, COLOR_RED, COLOR_BLACK);
 
-
-    drawMainWindows(mainWindow, statusBar);
+    drawMainWindows();
 
     // Show the QSO Entry Form
-    drawQsoEntryForm(qsoFormWindow, qsoForm, field);
+    drawQsoEntryForm();
 
-    while ((ch = getch()) != KEY_F(1)) {
-		formResult = formDriver(ch, qsoFormWindow, qsoForm, field);
+    while ((ch = getch()) != 10) {
+		formResult = formDriver(ch);
+        if (formResult == -1)
+            break;
     }
 
     printw("Form result = %d", formResult);
     refresh();
 
+    unpost_form(qsoForm);
     delwin(mainWindow);
     delwin(statusBar);
     delwin(qsoFormWindow);
