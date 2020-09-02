@@ -67,7 +67,62 @@ void drawQsoEntryForm(WINDOW *qsoFormWindow, FORM *qsoForm, FIELD **field) {
     wrefresh(qsoFormWindow);
 
     refresh();
+}
 
+// Generic form driver.
+// @return -1 on no-go of field_buffer processing, otherwise ready to extract values.
+//
+int formDriver(int ch, WINDOW *formWindow, FORM *form, FIELD **field) {
+    int i;
+    int result = 1;
+
+	switch (ch) {
+        case 27:
+            // Or the current field buffer won't be sync with what is displayed
+            form_driver(form, REQ_NEXT_FIELD);
+            form_driver(form, REQ_PREV_FIELD);
+            pos_form_cursor(form);
+
+            result = -1;
+            break;
+
+        case KEY_DOWN:
+            form_driver(form, REQ_NEXT_FIELD);
+            form_driver(form, REQ_END_LINE);
+            break;
+
+        case KEY_UP:
+            form_driver(form, REQ_PREV_FIELD);
+            form_driver(form, REQ_END_LINE);
+            break;
+
+        case KEY_LEFT:
+            form_driver(form, REQ_PREV_CHAR);
+            break;
+
+        case KEY_RIGHT:
+            form_driver(form, REQ_NEXT_CHAR);
+            break;
+
+            // Delete the char before cursor
+        case KEY_BACKSPACE:
+        case 127:
+            form_driver(form, REQ_DEL_PREV);
+            break;
+
+            // Delete the char under the cursor
+        case KEY_DC:
+            form_driver(form, REQ_DEL_CHAR);
+            break;
+
+        default:
+            form_driver(form, ch);
+            break;
+    }
+
+    wrefresh(formWindow);
+
+    return result;
 
 }
 
@@ -81,6 +136,7 @@ int main() {
     FIELD *field[3];
 
     int ch;
+    int formResult;
 
 
     /* Initialize curses */
@@ -99,7 +155,12 @@ int main() {
     // Show the QSO Entry Form
     drawQsoEntryForm(qsoFormWindow, qsoForm, field);
 
-    getch();
+    while ((ch = getch()) != KEY_F(1)) {
+		formResult = formDriver(ch, qsoFormWindow, qsoForm, field);
+    }
+
+    printw("Form result = %d", formResult);
+    refresh();
 
     delwin(mainWindow);
     delwin(statusBar);
