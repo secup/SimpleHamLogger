@@ -144,8 +144,7 @@ int main() {
     setlocale(LC_ALL,"");
 
     int ch;
-    int formResult;
-
+    int formResult = -1;
 
     /* Initialize curses */
     initscr();
@@ -171,6 +170,7 @@ int main() {
     printw("Form result = %d", formResult);
     refresh();
 
+    getch();
     unpost_form(qsoForm);
     delwin(mainWindow);
     delwin(statusBar);
