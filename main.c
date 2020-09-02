@@ -9,7 +9,7 @@ WINDOW *mainWindow;
 WINDOW *statusBar;
 WINDOW *qsoFormWindow;
 FORM *qsoForm;
-FIELD *field[3];
+FIELD *field[4];
 
 void print_in_middle(WINDOW *win, int starty, int startx, int width, char *string, chtype color);
 
@@ -26,7 +26,7 @@ void drawMainWindows() {
     statusBar = newwin(3, maxWidth, maxHeight-3, 0);
     box(statusBar, 0, 0);
 
-    mvwprintw(mainWindow, 1 , 1, "maxHeight = %d, maxWidth = %d", maxHeight, maxWidth);
+    //mvwprintw(mainWindow, 1 , 1, "maxHeight = %d, maxWidth = %d", maxHeight, maxWidth);
     mvwprintw(statusBar, 1, 1, "Status Bar Message...");
 
     wrefresh(stdscr); 
@@ -40,9 +40,10 @@ void drawQsoEntryForm() {
     int rows, cols;
 
     /* Initialize the fields */
-	field[0] = new_field(1, 10, 6, 1, 0, 0);
-	field[1] = new_field(1, 10, 8, 1, 0, 0);
-	field[2] = NULL;
+	field[0] = new_field(1, 30, 1, 12, 0, 0);
+	field[1] = new_field(1, 30, 3, 12, 0, 0);
+	field[2] = new_field(1, 30, 5, 12, 0, 0);
+    field[3] = NULL;
 
     /* Set field options */
     set_field_back(field[0], A_UNDERLINE);
@@ -51,8 +52,8 @@ void drawQsoEntryForm() {
     set_field_back(field[1], A_UNDERLINE);
     field_opts_off(field[1], O_AUTOSKIP);
 
-    set_field_buffer(field[0], 0, "label1");
-	set_field_buffer(field[1], 0, "val1");
+    set_field_back(field[2], A_UNDERLINE);
+    field_opts_off(field[2], O_AUTOSKIP);
 
     /* Create the form and post it */
     qsoForm = new_form(field);
@@ -69,13 +70,19 @@ void drawQsoEntryForm() {
 
     /* Print a border around the main window and print a title */
     box(qsoFormWindow, 0, 0);
-    print_in_middle(qsoFormWindow, 1, 0, cols + 4, "QSO Entry", COLOR_PAIR(1));
+    print_in_middle(qsoFormWindow, 1, 0, cols + 4, "QSO Entry Form", COLOR_PAIR(1));
 
     post_form(qsoForm);
     
+    mvwprintw(qsoFormWindow, 3, 1, "Callsign:");
+    mvwprintw(qsoFormWindow, 5, 1, "Frequency:");
+    mvwprintw(qsoFormWindow, 7, 1, "Mode:");
+    
     wrefresh(qsoFormWindow);
+    pos_form_cursor(qsoForm);
 
     refresh();
+    set_current_field(qsoForm, field[0]);
 }
 
 // Generic form driver.
