@@ -2,6 +2,7 @@
 #include <locale.h>
 #include <panel.h>
 #include <form.h>
+#include <menu.h>
 
 void print_in_middle(WINDOW *win, int starty, int startx, int width, char *string, chtype color);
 
@@ -27,7 +28,46 @@ void drawMainWindows(WINDOW  *mainWindow, WINDOW *statusBar) {
 
 }
 
-void drawQsoEntryForm(WINDOW *qsoFormWindow, FORM *qsoForm, FIELD *field) {
+void drawQsoEntryForm(WINDOW *qsoFormWindow, FORM *qsoForm, FIELD **field) {
+
+    int rows, cols;
+
+    /* Initialize the fields */
+	field[0] = new_field(1, 10, 6, 1, 0, 0);
+	field[1] = new_field(1, 10, 8, 1, 0, 0);
+	field[2] = NULL;
+
+    /* Set field options */
+    set_field_back(field[0], A_UNDERLINE);
+    field_opts_off(field[0], O_AUTOSKIP); /* Don't go to next field when this */
+    /* Field is filled up 		*/
+    set_field_back(field[1], A_UNDERLINE);
+    field_opts_off(field[1], O_AUTOSKIP);
+
+    /* Create the form and post it */
+    qsoForm = new_form(field);
+
+    /* Calculate the area required for the form */
+    scale_form(qsoForm, &rows, &cols);
+
+    /* Create the window to be associated with the form */
+    qsoFormWindow = newwin(rows + 4, cols + 4, 4, 4);
+    keypad(qsoFormWindow, TRUE);
+
+    /* Set main window and sub window */
+    set_form_win(qsoForm, qsoFormWindow);
+    set_form_sub(qsoForm, derwin(qsoFormWindow, rows, cols, 2, 2));
+
+    /* Print a border around the main window and print a title */
+    box(qsoFormWindow, 0, 0);
+    print_in_middle(qsoFormWindow, 1, 0, cols + 4, "QSO Entry", COLOR_PAIR(1));
+
+    post_form(qsoForm);
+    
+    wrefresh(qsoFormWindow);
+
+    refresh();
+
 
 }
 
@@ -36,14 +76,9 @@ int main() {
     setlocale(LC_ALL,"");
     WINDOW *mainWindow;
     WINDOW *statusBar;
-    WINDOW *qsoEntryWindow;
-
-
+    WINDOW *qsoFormWindow;
     FORM *qsoForm;
-
     FIELD *field[3];
-
-
 
     int ch;
 
@@ -54,6 +89,10 @@ int main() {
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
+
+    /* Initialize few color pairs */
+   	init_pair(1, COLOR_RED, COLOR_BLACK);
+
 
     drawMainWindows(mainWindow, statusBar);
 
