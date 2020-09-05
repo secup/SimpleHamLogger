@@ -168,7 +168,7 @@ int main() {
     // Show the QSO Entry Form
     drawQsoEntryForm();
 
-    while ((ch = getch()) != 10) {
+    while ((ch = wgetch(qsoFormWindow)) != 10) {
 		formResult = formDriver(ch);
         if (formResult == -1)
             break;
