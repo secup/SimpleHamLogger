@@ -5,6 +5,10 @@
 #include <menu.h>
 #include <assert.h>
 
+
+#include "visual.h"
+
+
 WINDOW *mainWindow;
 WINDOW *statusBar;
 WINDOW *qsoFormWindow;
@@ -140,6 +144,8 @@ int formDriver(int ch) {
             break;
     }
 
+    ////highlight_current_field(qsoForm, field);
+
     wrefresh(qsoFormWindow);
 
     return result;
@@ -168,8 +174,12 @@ int main() {
     // Show the QSO Entry Form
     drawQsoEntryForm();
 
+    keypad(qsoFormWindow, TRUE);
+
+
     while ((ch = wgetch(qsoFormWindow)) != 10) {
 		formResult = formDriver(ch);
+        highlight_current_field(qsoForm, field);
         if (formResult == -1)
             break;
     }
